@@ -50,6 +50,12 @@ def analyze_essay(essay):
 
 # When a revised essay is submitted, wi'll compare it to the original feedback
 
+
+# Root endpoint to check if the server is running
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({"message": "Essay Writing Teacher Plugin is running!"})
+
 @app.route("/analyze", methods=["POST"])
 def analyze():
     data = request.json
@@ -127,3 +133,29 @@ def monthly_report():
     """
 
     return jsonify({"report": report, "averages": averages})
+
+
+# Endpoint for submitting an essay
+@app.route('/submit-essay', methods=['POST'])
+def submit_essay():
+    essay_text = request.json.get("essay_text")
+    if not essay_text:
+        return jsonify({"error": "No essay text provided"}), 400
+    
+    # Call the OpenAI API to process the essay
+    feedback = generate_feedback(essay_text)
+    
+    return jsonify({"feedback": feedback})
+
+def generate_feedback(essay_text):
+    # You would integrate your essay feedback logic here
+    # Example of calling OpenAI API for feedback
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # Adjust this based on your preferred engine
+        prompt=f"Proofread this essay and provide feedback: {essay_text}",
+        max_tokens=500
+    )
+    return response.choices[0].text.strip()
+
+if __name__ == "__main__":
+    app.run(debug=True)
